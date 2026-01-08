@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard AI Dashboard</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a12;
+            --panel-bg: #11111b;
+            --primary: #00ffcc;
+            --danger: #ff0055;
+            --text-main: #e0e0e0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Roboto Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            height: 95vh;
+            overflow: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            margin: 0 0 15px 0;
+        }
+
+        /* LAYOUT */
+        .left-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            flex: 2;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* INPUT FORM */
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        input {
+            width: 95%;
+            padding: 8px;
+            background: #000;
+            border: 1px solid #444;
+            color: var(--primary);
+            font-family: 'Roboto Mono';
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+            font-family: 'Orbitron';
+            letter-spacing: 2px;
+        }
+
+        button:hover {
+            background: white;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* MANUAL RESULT */
+        #manualResult {
+            margin-top: 20px;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .res-safe {
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            box-shadow: inset 0 0 10px var(--primary);
+        }
+
+        .res-fraud {
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            box-shadow: inset 0 0 10px var(--danger);
+            animation: blink 1s infinite;
+        }
+
+        /* LIVE LOG TABLE */
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #555;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .live {
+            background-color: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        .log-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 0.85em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            color: #666;
+            padding: 5px;
+            position: sticky;
+            top: 0;
+            background: var(--panel-bg);
+        }
+
+        td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #222;
+        }
+
+        .row-new {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .b-safe {
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .b-fraud {
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            background: rgba(255, 0, 85, 0.1);
+        }
+
+        /* ANIMATIONS */
+        @keyframes blink {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="left-panel">
+        <h2>🧪 MANUAL TEST</h2>
+        <p style="font-size: 0.8em; color: #666;">Input data untuk tes validitas model.</p>
+
+        <form id="predictForm">
+            {% for feature in features %}
+            <div class="input-group">
+                <label>{{ feature }}</label>
+                <input type="number" step="any" name="{{ feature }}" required placeholder="0.00">
+            </div>
+            {% endfor %}
+            <input type="hidden" name="Amount" value="0"> <input type="hidden" name="Time" value="0">
+            <button type="submit">ANALISA SEKARANG</button>
+        </form>
+
+        <div id="manualResult">
+            <h3 id="resTitle">RESULT</h3>
+            <p id="resProb">Confidence: -</p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="log-header">
+            <h2>📡 LIVE TRANSACTION MONITOR</h2>
+            <div><span class="status-dot live"></span> REAL-TIME</div>
+        </div>
+
+        <div class="log-container">
+            <table id="logTable">
+                <thead>
+                    <tr>
+                        <th>TIME</th>
+                        <th>TRX ID</th>
+                        <th>AMOUNT</th>
+                        <th>STATUS AI</th>
+                        <th>RISK SCORE</th>
+                        <th>SYSTEM ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. LOGIKA MANUAL TEST
+        document.getElementById('predictForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const response = await fetch('/predict', { method: 'POST', body: formData });
+            const result = await response.json();
+
+            const resDiv = document.getElementById('manualResult');
+            const resTitle = document.getElementById('resTitle');
+            const resProb = document.getElementById('resProb');
+
+            resDiv.style.display = 'block';
+            resDiv.className = result.class === 'fraud' ? 'res-fraud' : 'res-safe';
+            resTitle.innerText = result.text;
+            resProb.innerText = "Risk Level: " + result.probability;
+        };
+
+        // 2. LOGIKA SIMULASI OTOMATIS (LIVE STREAM)
+        function fetchSimulation() {
+            fetch('/simulate')
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+                    const row = table.insertRow(0); // Insert di paling atas
+                    row.className = "row-new";
+
+                    // Warna baris kalau Fraud
+                    if (data.prediction === 1) {
+                        row.style.backgroundColor = "rgba(255, 0, 85, 0.1)";
+                    }
+
+                    // Tentukan ACTION berdasarkan prediksi
+                    let statusBadge = '';
+                    let actionText = '';
+
+                    if (data.prediction === 1) {
+                        // Kalau FRAUD
+                        row.style.backgroundColor = "rgba(255, 0, 85, 0.1)"; // Merah tipis
+                        statusBadge = '<span class="badge b-fraud">FRAUD DETECTED</span>';
+                        // INI TAMBAHANNYA: Action-nya BLOCKED
+                        actionText = '<span style="color: #ff0055; font-weight: bold;">⛔ BLOCKED (Auto-Freeze)</span>';
+                    } else {
+                        // Kalau AMAN
+                        statusBadge = '<span class="badge b-safe">NORMAL</span>';
+                        actionText = '<span style="color: #00ffcc;">✅ SUCCESS</span>';
+                    }
+
+                    row.innerHTML = `
+                        <td>${data.timestamp}</td>
+                        <td style="color: #888;">${data.id}</td>
+                        <td>${data.amount}</td>
+                        <td>${statusBadge}</td> <td>${data.probability}</td>
+                        <td>${actionText}</td>   `;
+
+                    // Batasi cuma nampilin 50 baris terakhir biar browser gak berat
+                    if (table.rows.length > 50) {
+                        table.deleteRow(50);
+                    }
+                });
+        }
+
+        // Jalankan simulasi setiap 2 detik
+        setInterval(fetchSimulation, 2000);
+    </script>
+
+</body>
+
+</html>

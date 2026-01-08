@@ -1,0 +1,21 @@
+# Python bytecode (Sampah proses)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment (Jangan diupload karena berat & beda tiap OS)
+venv/
+env/
+ENV/
+.env
+
+# Editor Settings
+.vscode/
+.idea/
+
+# File sistem
+.DS_Store
+Thumbs.db
+
+# Log file
+*.log
